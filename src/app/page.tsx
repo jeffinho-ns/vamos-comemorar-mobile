@@ -13,6 +13,9 @@ import { useRouter } from "next/navigation";
 import Header from "./components/header/header";
 import Footer from "./components/footer/footer";
 //import Intro from "./components/intro/intro";
+
+import EventFilter from './components/filter/filter';
+import { AnimatePresence } from "framer-motion";
 import Promo from "./assets/indique.png"
 import imgBanner from "./assets/retangulo.png";
 import logoWhite from "./assets/logo_blue.png";
@@ -50,9 +53,19 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
   const [currentIntroPage, setCurrentIntroPage] = useState(0);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
   const router = useRouter();
+
+
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [customDate, setCustomDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [priceRange, setPriceRange] = useState(50);
+  
+
 
   const fetchEvents = useCallback(() => {
     setLoading(true);
@@ -108,16 +121,20 @@ export default function Home() {
     const getEventPagePath = (place: string) => {
       switch (place) {
         case "Justino":
-          return `/justino/reservas/`;
+          return `/justino/eventDetails`;
         case "Pracinha":
-          return `/pracinha/reservas/`;
+          return `/pracinha/eventDetails`;
         case "Oh Freguês":
-          return `/ohfregues/reservas/`;
+          return `/ohfregues/eventDetails`;
         case "Highline":
-          return `/highline/reservas/`;
+          return `/highline/eventDetails`;
         default:
-          return `/reservas/`;
+          return `/eventDetails`;
       }
+    };
+  
+    const handleClick = () => {
+      localStorage.setItem("selectedEvent", JSON.stringify(event));
     };
 
     return (
@@ -205,25 +222,49 @@ export default function Home() {
               unoptimized
             />
           </div>
-          <div className="flex justify-center z-10 mt-8">
-            <form className="w-11/12 max-w-md flex items-center">
-              <div className="flex items-center flex-grow bg-transparent">
-                <MdSearch className="text-white text-4xl mr-2" />
-                <input
-                  placeholder="Buscar..."
-                  type="text"
-                  id="search"
-                  className="w-full bg-transparent p-2 focus:outline-none text-white placeholder-white"
-                />
-              </div>
-              <button
-                type="button"
-                className="flex items-center bg-[#5D56F3]/80 text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:bg-blue-600/90 transition duration-300"
-              >
-                <MdFilterList className="text-xl mr-2" />
-                Filters
-              </button>
-            </form>
+          <div className="flex justify-center z-10 mt-8 relative">
+  <form className="w-11/12 max-w-md flex items-center relative z-10">
+    <div className="flex items-center flex-grow bg-transparent">
+      <MdSearch className="text-white text-4xl mr-2" />
+      <input
+        placeholder="Buscar..."
+        type="text"
+        id="search"
+        className="w-full bg-transparent p-2 focus:outline-none text-white placeholder-white"
+      />
+    </div>
+    <button
+      onClick={(e) => {
+        e.preventDefault(); // Impede comportamento padrão
+        setShowFilter(!showFilter);
+      }}
+      type="button"
+      className="flex items-center bg-[#5D56F3]/80 text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:bg-blue-600/90 transition duration-300"
+    >
+      <MdFilterList className="text-xl mr-2" />
+      Filters
+    </button>
+  </form>
+
+  {/* Filtro animado fora do form */}
+  <AnimatePresence>
+  {showFilter && (
+    <motion.div
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 100 }}
+      transition={{ duration: 0.4 }}
+      className="bg-white rounded-t-3xl shadow-xl p-4 max-h-[85vh] overflow-y-auto w-full absolute bottom-[-800px] left-0 right-0 z-40"
+    >
+       <EventFilter />
+
+    </motion.div>
+  )}
+</AnimatePresence>
+
+
+
+
           </div>
           <div className="flex justify-center gap-6 my-8">
             <Link href="justino">

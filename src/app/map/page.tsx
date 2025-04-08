@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaHeart } from "react-icons/fa";
 
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
 
 const containerStyle = {
@@ -40,14 +41,24 @@ export default function MapPage() {
       try {
         const res = await fetch(`${API_URL}/api/events`);
         const data = await res.json();
-        setEvents(data);
+  
+        const casaAtual = localStorage.getItem("casa_do_evento");
+        if (casaAtual) {
+          const eventosFiltrados = data.filter(
+            (event: any) => event.casa_do_evento === casaAtual
+          );
+          setEvents(eventosFiltrados);
+        } else {
+          setEvents(data); // fallback, caso não tenha nada no localStorage
+        }
       } catch (error) {
         console.error("Erro ao buscar eventos:", error);
       }
     };
-
+  
     fetchEvents();
   }, []);
+  
 
   const handleCenterLocation = () => {
     if (navigator.geolocation && mapRef) {
@@ -66,14 +77,17 @@ export default function MapPage() {
   };
 
   const handleCardClick = (lat: number, lng: number) => {
-    const newCenter = { lat, lng };
-    setCenter(newCenter); // Atualiza o estado do centro
     if (mapRef) {
-      mapRef.panTo(newCenter);
+      mapRef.panTo({
+        lat: Number(lat),
+        lng: Number(lng),
+      });
       mapRef.setZoom(16);
     }
   };
   
+
+
 
   if (!isLoaded) return <div>Carregando mapa...</div>;
 
@@ -107,14 +121,17 @@ export default function MapPage() {
         onLoad={(map) => setMapRef(map)}
       >
         {events.map((event) => (
-          <Marker
+            <Marker
             key={event.id}
-            position={{ lat: event.latitude, lng: event.longitude }}
-            icon={{
-              url: "/pin.svg",
-              scaledSize: new google.maps.Size(40, 40),
+            position={{
+                lat: Number(event.latitude),
+                lng: Number(event.longitude),
             }}
-          />
+            icon={{
+                url: "/pin.svg",
+                scaledSize: new google.maps.Size(40, 40),
+            }}
+            />
         ))}
       </GoogleMap>
 
@@ -125,7 +142,7 @@ export default function MapPage() {
     onClick={() => setShowEvents(!showEvents)}
     className="flex items-center justify-center gap-2 bg-white text-gray-800 text-base font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
   >
-    <Image src="/calendar-icon.svg" alt="Eventos" width={20} height={20} />
+    {/* <Image src="/calendar-icon.svg" alt="Eventos" width={20} height={20} /> */}
     <span>Eventos</span>
   </button>
 </div>
