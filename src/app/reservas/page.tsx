@@ -25,26 +25,24 @@ const Reservas = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
   const router = useRouter();
 
-  
 
-  useEffect(() => {
-    Modal.setAppElement('body');
-  }, []);
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId && !isNaN(Number(storedUserId))) {
       setUserId(Number(storedUserId));
     }
+  
     const storedEventData = localStorage.getItem("selectedEvent");
     if (storedEventData) {
       setEventData(JSON.parse(storedEventData));
     }
+  
     const storedLogo = localStorage.getItem("lastPageLogo");
     if (storedLogo) {
       setLogoSrc(storedLogo);
     }
-  }, []);
+  }, [API_URL]); // Remova eventData daqui
 
   useEffect(() => {
     if (eventData) {
@@ -199,7 +197,7 @@ const Reservas = () => {
         onRequestClose={() => setModalIsOpen(false)}
         contentLabel="Confirmação de Reserva"
         className="bg-white p-6 rounded-lg max-w-sm mx-auto mt-32 shadow-lg text-center"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center"
+        overlayClassName="fixed inset-0 z-10 bg-black bg-opacity-40 flex items-center justify-center"
       >
         <h2 className="text-xl font-bold mb-2">Falta Pouco!</h2>
         <p className="text-sm mb-4">Sua reserva está sendo processada!</p>

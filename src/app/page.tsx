@@ -20,12 +20,6 @@ import Promo from "./assets/indique.png"
 import imgBanner from "./assets/retangulo.png";
 import logoWhite from "./assets/logo_blue.png";
 
-import Logo1 from "./assets/justino/justinologo.png";
-import Logo2 from "./assets/pracinha/logo-pracinha.png";
-import Logo3 from "./assets/ohfregues/logoOhfregues.png";
-import Logo4 from "./assets/highline/highlinelogo.png";
-
-
 import Avatar1 from "./assets/avatar/001.jpg";
 import Avatar2 from "./assets/avatar/002.jpg";
 import Avatar3 from "./assets/avatar/003.jpeg";
@@ -64,7 +58,7 @@ export default function Home() {
   const [customDate, setCustomDate] = useState('');
   const [location, setLocation] = useState('');
   const [priceRange, setPriceRange] = useState(50);
-  
+
 
 
   const fetchEvents = useCallback(() => {
@@ -84,7 +78,7 @@ export default function Home() {
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "/global.scss"; 
+    link.href = "../globals.scss"; 
     document.head.appendChild(link);
   
     return () => {
@@ -118,7 +112,7 @@ export default function Home() {
   };
 
   const Card: React.FC<{ event: Event }> = ({ event }) => {
-    const getEventPagePath = (place: string) => {
+    const getEventPagePath = (place: string, id: string) => {
       switch (place) {
         case "Justino":
           return `/justino/eventDetails`;
@@ -136,9 +130,9 @@ export default function Home() {
     const handleClick = () => {
       localStorage.setItem("selectedEvent", JSON.stringify(event));
     };
-
+  
     return (
-      <Link href={getEventPagePath(event.casa_do_evento)}>
+      <Link href={getEventPagePath(event.casa_do_evento, event.id)} onClick={handleClick}>
         <motion.div
           className="relative bg-white rounded-lg shadow-md overflow-hidden card-container"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -157,36 +151,19 @@ export default function Home() {
           </div>
           <div className="p-6">
             <h2 className="text-xl font-bold">{event.casa_do_evento}</h2>
-            
             <div className="flex items-center mt-2">
               <div className="flex -space-x-2 overflow-hidden">
-                <Image
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                  src={Avatar1}
-                  alt="User 1"
-                />
-                <Image
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                  src={Avatar2}
-                  alt="User 2"
-                />
-                                <Image
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                  src={Avatar3}
-                  alt="User 3"
-                />
-                                <Image
-                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                  src={Avatar4}
-                  alt="User 4"
-                />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar1} alt="User 1" />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar2} alt="User 2" />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar3} alt="User 3" />
+                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar4} alt="User 4" />
               </div>
               <p className="text-sm text-gray-500 ml-2">+20 Seguindo</p>
             </div>
             <p className="text-sm text-gray-400 mt-2">{event.local_do_evento}</p>
           </div>
           <div className="absolute top-2 left-2 bg-white rounded-full p-2">
-          <span className="text-xs font-bold text-red-500">{formatDate(event.data_do_evento)}</span>
+            <span className="text-xs font-bold text-red-500">{formatDate(event.data_do_evento)}</span>
           </div>
           <div className="absolute top-2 right-2 bg-white rounded-full p-2">
             <FaHeart className="text-red-500 text-2xl" />
@@ -195,6 +172,7 @@ export default function Home() {
       </Link>
     );
   };
+  
 
   return (
     <>
