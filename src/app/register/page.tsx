@@ -6,10 +6,11 @@ import { useState } from "react";
 import Link from "next/link";
 import ModalTermos from "../components/ModalTermos/ModalTermos";
 import ModalPolitica from "../components/ModalPolitica/ModalPolitica";
+import { useRouter } from "next/navigation";
 
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
+  process.env.NEXT_PUBLIC_API_URL;
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -24,74 +25,98 @@ export default function Register() {
   const [showTermos, setShowTermos] = useState(false);
   const [showPolitica, setShowPolitica] = useState(false);
 
+  const router = useRouter();
+
   const handleSubmit = async () => {
     setError("");
-
-    const cpfRegex = /^\d{11}$/;
-const whatsappRegex = /^\d{10,11}$/;
-
-
-
+  
     if (!name || !birthdate || !email || !cpf || !whatsapp || !password || !confirmPassword) {
       setError("Preencha todos os campos.");
       return;
     }
-
+  
     const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
     if (age < 18) {
       setError("Você precisa ter mais de 18 anos.");
       return;
     }
-
+  
     const cleanCPF = cpf.replace(/\D/g, "");
     const cleanWhatsapp = whatsapp.replace(/\D/g, "");
-
+  
     if (cleanCPF.length !== 11) {
       setError("CPF inválido. Deve conter 11 dígitos.");
       return;
     }
-
+  
     if (cleanWhatsapp.length < 10 || cleanWhatsapp.length > 11) {
       setError("Número de WhatsApp inválido.");
       return;
     }
-
+  
     if (password !== confirmPassword) {
       setError("As senhas não coincidem.");
       return;
     }
-
+  
     if (!isOver18) {
       setError("Você precisa aceitar os termos e a política.");
       return;
     }
-
+  
     try {
-      const response = await fetch(`${API_URL}/users`, {
+      const response = await fetch(`${API_URL}/api/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          birthdate,
           email,
+          telefone: cleanWhatsapp,
+          data_nascimento: birthdate,
           cpf: cleanCPF,
-          whatsapp: cleanWhatsapp,
+          foto_perfil: "", // opcional
+          sexo: "", // opcional ou "Não informado"
+          endereco: "",
+          numero: "",
+          bairro: "",
+          cidade: "",
+          estado: "",
+          complemento: "",
           password,
         }),
       });
-
+  
       if (!response.ok) {
         const resData = await response.json();
         setError(resData.message || "Erro ao cadastrar.");
         return;
       }
 
+      const userData = await response.json();
+
+      const { token, userId } = userData;
+
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("userId", userId);
+// redireciona para a home
+router.push("/"); // ajuste o caminho se sua home for diferente
+  
       alert("Cadastro realizado com sucesso!");
-      // Redirecionar ou limpar formulário se quiser
+      // Você pode limpar o form aqui
+      setName("");
+      setBirthdate("");
+      setEmail("");
+      setCpf("");
+      setWhatsapp("");
+      setPassword("");
+      setConfirmPassword("");
+      setIsOver18(false);
     } catch (err) {
       setError("Erro de conexão com o servidor.");
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-black px-4 py-10">
