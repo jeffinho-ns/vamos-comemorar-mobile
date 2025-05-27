@@ -12,7 +12,7 @@ import { FaHeart } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Header from "./components/header/header";
 import Footer from "./components/footer/footer";
-//import Intro from "./components/intro/intro";
+import Intro from "./components/intro/intro";
 
 import EventFilter from './components/filter/filter';
 import { AnimatePresence } from "framer-motion";
@@ -130,6 +130,10 @@ export default function Home() {
     const handleClick = () => {
       localStorage.setItem("selectedEvent", JSON.stringify(event));
     };
+
+    if (showIntro) {
+  return <Intro onFinish={() => setShowIntro(false)} />;
+}
   
     return (
       <Link href={getEventPagePath(event.casa_do_evento, event.id)} onClick={handleClick}>
