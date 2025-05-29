@@ -173,7 +173,19 @@ export default function Home() {
               Só é exibido se showIntro for false (intro já terminou) E loading for true (eventos estão sendo buscados) */}
           {loading && (
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-              <p className="text-white text-lg">Carregando eventos...</p>
+                  <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
+                    <video
+                      src="/intro/intro.mp4" // Caminho correto para o vídeo na pasta /public
+                      autoPlay
+                      muted // Essencial para autoplay funcionar em muitos navegadores móveis
+                      playsInline // Essencial para reprodução no fluxo da página em muitos navegadores móveis
+                      
+                      onError={(e) => console.error("Erro ao carregar/reproduzir vídeo:", e)} // Ajuda a depurar problemas de carregamento
+                      className="w-full h-full object-cover"
+                    >
+                      Seu navegador não suporta a tag de vídeo.
+                    </video>
+                  </div>
             </div>
           )}
 
