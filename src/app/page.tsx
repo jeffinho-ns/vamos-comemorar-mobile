@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,8 +10,7 @@ import { useRouter } from "next/navigation";
 import Header from "./components/header/header";
 import Footer from "./components/footer/footer";
 import Intro from "./components/intro/intro";
-
-import EventFilter from './components/filter/filter';
+import EventFilter from "./components/filter/filter";
 
 import Promo from "./assets/indique.png";
 import imgBanner from "./assets/retangulo.png";
@@ -40,9 +38,7 @@ interface Event {
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
-  // loading deve ser true APENAS quando a busca por eventos começar E a intro não estiver mais ativa.
-  const [loading, setLoading] = useState(false); // <--- MUDANÇA AQUI: Comece como false
-
+  const [loading, setLoading] = useState(false);
   const [showIntro, setShowIntro] = useState(() => {
     if (typeof window !== "undefined") {
       return !localStorage.getItem("introShown");
@@ -53,19 +49,14 @@ export default function Home() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
   const router = useRouter();
-
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [customDate, setCustomDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [priceRange, setPriceRange] = useState(50);
+  const hasFetched = useRef(false); // ✅ evita chamada duplicada do fetch
 
   const fetchEvents = useCallback(() => {
-    // Só defina loading como true SE a intro já terminou.
-    // Assim, o overlay de carregamento de eventos não interfere com a intro.
-    if (!showIntro) { // <--- MUDANÇA AQUI: Condiciona o setLoading(true)
+    if (!showIntro && !hasFetched.current) {
+      hasFetched.current = true;
       setLoading(true);
       setEvents([]);
+
       fetch(`${API_URL}/api/events`)
         .then((response) => response.json())
         .then((data) => {
@@ -79,9 +70,8 @@ export default function Home() {
         .catch((error) => console.error("Erro ao buscar eventos:", error))
         .finally(() => setLoading(false));
     }
-  }, [API_URL, showIntro]); // showIntro como dependência para reavaliação
+  }, [API_URL, showIntro]);
 
-  // Este useEffect agora apenas busca os eventos quando a intro não está sendo exibida
   useEffect(() => {
     if (!showIntro) {
       fetchEvents();
@@ -91,9 +81,7 @@ export default function Home() {
   const handleIntroFinish = () => {
     setShowIntro(false);
     localStorage.setItem("introShown", "true");
-    // Ao finalizar a intro, imediatamente dispara a busca por eventos.
-    // O fetchEvents já vai setar loading para true internamente.
-    fetchEvents(); // <--- MUDANÇA AQUI: Chama fetchEvents imediatamente após a intro terminar
+    fetchEvents();
   };
 
   const formatDate = (dateString: string) => {
@@ -163,29 +151,24 @@ export default function Home() {
     );
   };
 
-  return (
+return (
     <>
       {showIntro ? (
         <Intro onFinish={handleIntroFinish} />
       ) : (
         <>
-          {/* Overlay de carregamento de eventos:
-              Só é exibido se showIntro for false (intro já terminou) E loading for true (eventos estão sendo buscados) */}
           {loading && (
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                  <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
-                    <video
-                      src="/intro/intro.mp4" // Caminho correto para o vídeo na pasta /public
-                      autoPlay
-                      muted // Essencial para autoplay funcionar em muitos navegadores móveis
-                      playsInline // Essencial para reprodução no fluxo da página em muitos navegadores móveis
-                      
-                      onError={(e) => console.error("Erro ao carregar/reproduzir vídeo:", e)} // Ajuda a depurar problemas de carregamento
-                      className="w-full h-full object-cover"
-                    >
-                      Seu navegador não suporta a tag de vídeo.
-                    </video>
-                  </div>
+              <video
+                src="/intro/intro.mp4"
+                autoPlay
+                muted
+                playsInline
+                onError={(e) => console.error("Erro ao carregar vídeo:", e)}
+                className="w-full h-full object-cover"
+              >
+                Seu navegador não suporta a tag de vídeo.
+              </video>
             </div>
           )}
 
