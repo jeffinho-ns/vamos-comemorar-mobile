@@ -158,17 +158,16 @@ return (
       ) : (
         <>
           {loading && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
               <video
                 src="/intro/intro.mp4"
                 autoPlay
                 muted
                 playsInline
-                onError={(e) => console.error("Erro ao carregar vídeo:", e)}
-                className="w-full h-full object-cover"
-              >
-                Seu navegador não suporta a tag de vídeo.
-              </video>
+                controls={false}
+                loop
+                className="w-full h-full object-cover pointer-events-none"
+              />
             </div>
           )}
 
