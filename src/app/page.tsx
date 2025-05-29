@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import "@/src/app/globals.scss";
 
-
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { MdSearch, MdFilterList } from "react-icons/md";
@@ -15,8 +13,8 @@ import Footer from "./components/footer/footer";
 import Intro from "./components/intro/intro";
 
 import EventFilter from './components/filter/filter';
-import { AnimatePresence } from "framer-motion";
-import Promo from "./assets/indique.png"
+
+import Promo from "./assets/indique.png";
 import imgBanner from "./assets/retangulo.png";
 import logoWhite from "./assets/logo_blue.png";
 
@@ -24,9 +22,6 @@ import Avatar1 from "./assets/avatar/001.jpg";
 import Avatar2 from "./assets/avatar/002.jpg";
 import Avatar3 from "./assets/avatar/003.jpeg";
 import Avatar4 from "./assets/avatar/004.jpg";
-
-
-
 
 interface Event {
   id: string;
@@ -45,13 +40,19 @@ interface Event {
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showIntro, setShowIntro] = useState(true);
+  // loading deve ser true APENAS quando a busca por eventos começar E a intro não estiver mais ativa.
+  const [loading, setLoading] = useState(false); // <--- MUDANÇA AQUI: Comece como false
+
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !localStorage.getItem("introShown");
+    }
+    return true;
+  });
   const [showFilter, setShowFilter] = useState(false);
-  const [currentIntroPage, setCurrentIntroPage] = useState(0);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
   const router = useRouter();
-
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -59,51 +60,41 @@ export default function Home() {
   const [location, setLocation] = useState('');
   const [priceRange, setPriceRange] = useState(50);
 
-
-
   const fetchEvents = useCallback(() => {
-    setLoading(true);
-    setEvents([]);
-    fetch(`${API_URL}/api/events`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setEvents(data);
-        }
-      })
-      .catch((error) => console.error("Erro ao buscar eventos:", error))
-      .finally(() => setLoading(false));
-  }, [API_URL]);
-
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "../globals.scss"; 
-    document.head.appendChild(link);
-  
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (showIntro) {
-      localStorage.setItem("introShown", "true");
+    // Só defina loading como true SE a intro já terminou.
+    // Assim, o overlay de carregamento de eventos não interfere com a intro.
+    if (!showIntro) { // <--- MUDANÇA AQUI: Condiciona o setLoading(true)
+      setLoading(true);
+      setEvents([]);
+      fetch(`${API_URL}/api/events`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setEvents(data);
+          } else {
+            console.error("Dados da API não são um array:", data);
+            setEvents([]);
+          }
+        })
+        .catch((error) => console.error("Erro ao buscar eventos:", error))
+        .finally(() => setLoading(false));
     }
-  }, [showIntro]);
+  }, [API_URL, showIntro]); // showIntro como dependência para reavaliação
 
-  const handleNextIntro = () => {
-    if (currentIntroPage < 2) {
-      setCurrentIntroPage((prev) => prev + 1);
-    } else {
-      setShowIntro(false);
+  // Este useEffect agora apenas busca os eventos quando a intro não está sendo exibida
+  useEffect(() => {
+    if (!showIntro) {
+      fetchEvents();
     }
+  }, [fetchEvents, showIntro]);
+
+  const handleIntroFinish = () => {
+    setShowIntro(false);
+    localStorage.setItem("introShown", "true");
+    // Ao finalizar a intro, imediatamente dispara a busca por eventos.
+    // O fetchEvents já vai setar loading para true internamente.
+    fetchEvents(); // <--- MUDANÇA AQUI: Chama fetchEvents imediatamente após a intro terminar
   };
-
-
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -112,7 +103,7 @@ export default function Home() {
   };
 
   const Card: React.FC<{ event: Event }> = ({ event }) => {
-    const getEventPagePath = (place: string, id: string) => {
+    const getEventPagePath = (place: string) => {
       switch (place) {
         case "Justino":
           return `/justino/eventDetails`;
@@ -126,17 +117,13 @@ export default function Home() {
           return `/eventDetails`;
       }
     };
-  
+
     const handleClick = () => {
       localStorage.setItem("selectedEvent", JSON.stringify(event));
     };
 
-    if (showIntro) {
-  return <Intro onFinish={() => setShowIntro(false)} />;
-}
-  
     return (
-      <Link href={getEventPagePath(event.casa_do_evento, event.id)} onClick={handleClick}>
+      <Link href={getEventPagePath(event.casa_do_evento)} onClick={handleClick}>
         <motion.div
           className="relative bg-white rounded-lg shadow-md overflow-hidden card-container"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -147,10 +134,9 @@ export default function Home() {
             <Image
               src={`${API_URL}/uploads/events/${event.imagem_do_evento}`}
               alt={event.nome_do_evento}
-              layout="fill"
-              objectFit="cover"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="absolute inset-0 w-full h-full object-cover"
-              unoptimized
             />
           </div>
           <div className="p-6">
@@ -176,162 +162,158 @@ export default function Home() {
       </Link>
     );
   };
-  
 
   return (
     <>
-      {loading && (
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-         
-        </div>
-      )}
-      <Header className="z-20" />
-      <div className="relative">
-        <div id="home-container" className="container-mobile relative z-1">
-          <div className="flex flex-col items-center mt-8 z-10">
-            <Link href="/">
-              <Image src={logoWhite} alt="Logo" className="w-[120px] h-auto" />
-            </Link>
-            {/* <p className="title text-white text-center z-10">Qual evento você procura?</p> */}
-          </div>
-          <div className="absolute inset-0 w-full h-[450px] z-0 mt-[-100px] rounded-[30px] overflow-hidden">
-            <Image
-              src={imgBanner}
-              alt="Banner"
-              layout="fill"
-              objectFit="cover"
-              className="absolute inset-0 w-full h-full"
-              unoptimized
-            />
-          </div>
-          <div className="flex justify-center z-10 mt-8 relative">
-  <form className="w-11/12 max-w-md flex items-center relative z-10">
-    <div className="flex items-center flex-grow bg-transparent">
-      <MdSearch className="text-white text-4xl mr-2" />
-      <input
-        placeholder="Buscar..."
-        type="text"
-        id="search"
-        className="w-full bg-transparent p-2 focus:outline-none text-white placeholder-white"
-      />
-    </div>
-    <button
-      onClick={(e) => {
-        e.preventDefault(); // Impede comportamento padrão
-        setShowFilter(!showFilter);
-      }}
-      type="button"
-      className="flex items-center bg-[#5D56F3]/80 text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:bg-blue-600/90 transition duration-300"
-    >
-      <MdFilterList className="text-xl mr-2" />
-      Filters
-    </button>
-  </form>
+      {showIntro ? (
+        <Intro onFinish={handleIntroFinish} />
+      ) : (
+        <>
+          {/* Overlay de carregamento de eventos:
+              Só é exibido se showIntro for false (intro já terminou) E loading for true (eventos estão sendo buscados) */}
+          {loading && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+              <p className="text-white text-lg">Carregando eventos...</p>
+            </div>
+          )}
 
-  {/* Filtro animado fora do form */}
-  <AnimatePresence>
-  {showFilter && (
-    <motion.div
-      initial={{ opacity: 0, y: 100 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 100 }}
-      transition={{ duration: 0.4 }}
-      className="bg-white rounded-t-3xl shadow-xl p-4 max-h-[85vh] overflow-y-auto w-full absolute bottom-[-800px] left-0 right-0 z-40"
-    >
-       <EventFilter />
-
-    </motion.div>
-  )}
-</AnimatePresence>
-
-
-
-
-          </div>
-          <div className="flex justify-center gap-6 my-8">
-            <Link href="justino">
-              <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
-              <p className="text-sm font-semibold text-white border border-[#F0635A] bg-[#F0635A] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
-                Justino
-              </p>
-
-                {/* <Image src={Logo1} alt="Justino" width={50} height={50} className="object-contain rounded-full" unoptimized /> */}
+          {/* Conteúdo principal da página */}
+          <Header className="z-20" />
+          <div className="relative">
+            <div id="home-container" className="container-mobile relative z-1">
+              <div className="flex flex-col items-center mt-8 z-10">
+                <Link href="/">
+                  <Image src={logoWhite} alt="Logo" className="w-[120px] h-auto" />
+                </Link>
               </div>
-            </Link>
-            <Link href="/pracinha">
-              <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
-              <p className="text-sm font-semibold text-white border border-[#F59762] bg-[#F59762] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
-                Pracinha
-              </p>
-                {/* <Image src={Logo2} alt="Pracinha" width={50} height={50} className="object-contain rounded-full" unoptimized /> */}
+              <div className="absolute inset-0 w-full h-[450px] z-0 mt-[-100px] rounded-[30px] overflow-hidden">
+                <Image
+                  src={imgBanner}
+                  alt="Banner"
+                  fill
+                  sizes="100vw"
+                  className="absolute inset-0 w-full h-full"
+                />
               </div>
-            </Link>
-            <Link href="/ohfregues">
-              <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
-              <p className="text-sm font-semibold text-white border border-[#29D697] bg-[#29D697] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
-                Oh Freguês
-              </p>
-                {/* <Image src={Logo3} alt="Oh Freguês" width={50} height={50} className="object-contain rounded-full" unoptimized /> */}
-              </div>
-            </Link>
-            <Link href="/highline">
-              <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
-              <p className="text-sm font-semibold text-white border border-[#46CDFB] bg-[#46CDFB] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
-                Highline
-              </p>
-                {/* <Image src={Logo4} alt="Highline" width={50} height={50} className="object-contain rounded-full" unoptimized /> */}
-              </div>
-            </Link>
-          </div>
-          <div className="flex justify-between items-center px-6">
-            <p className="text-lg font-semibold text-black">Próximos eventos</p>
-            <Link
-              href="/eventos"
-              className="text-[#747688] hover:text-[#747688] text-[10px] font-medium"
-            >
-              Ver todos
-            </Link>
-          </div>
-          <div className="cards-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-8">
-            {loading
-              ? [...Array(6)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="border border-blue-300 shadow rounded-lg p-4 w-full h-[250px] mx-auto animate-pulse"
-                  >
-                    <div className="animate-pulse flex flex-col h-full">
-                      <div className="bg-slate-700 h-3/4 w-full rounded-t-lg"></div>
-                      <div className="flex-1 space-y-4 pt-4">
-                        <div className="h-4 bg-slate-700 rounded w-3/4 mx-auto"></div>
-                        <div className="h-4 bg-slate-700 rounded w-1/2 mx-auto"></div>
-                      </div>
-                    </div>
+              <div className="flex justify-center z-10 mt-8 relative">
+                <form className="w-11/12 max-w-md flex items-center relative z-10">
+                  <div className="flex items-center flex-grow bg-transparent">
+                    <MdSearch className="text-white text-4xl mr-2" />
+                    <input
+                      placeholder="Buscar..."
+                      type="text"
+                      id="search"
+                      className="w-full bg-transparent p-2 focus:outline-none text-white placeholder-white"
+                    />
                   </div>
-                ))
-              : events.map((event) => <Card key={event.id} event={event} />)}
-          </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowFilter(!showFilter);
+                    }}
+                    type="button"
+                    className="flex items-center bg-[#5D56F3]/80 text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:bg-blue-600/90 transition duration-300"
+                  >
+                    <MdFilterList className="text-xl mr-2" />
+                    Filters
+                  </button>
+                </form>
 
-          <div className="relative flex flex-col items-center mt-8">
-            <Image
-              src={Promo}
-              alt="Promoção"
-              className="w-full max-w-[350px] rounded-lg shadow-md"
-              unoptimized
-            />
-            <div className="absolute top-1/2 left-16 transform -translate-y-1/2">
-              <h3 className="text-xl font-bold text-[#000]">Indique e Ganhe</h3>
-              <p className="text-sm mt-2 text-[#000]">
-                Ganhe até <span className="font-semibold">25% de desconto</span>
-              </p>
-              <button className="mt-4 bg-[#2563eb] text-white px-4 py-2 rounded-full hover:bg-[#1e4db7] transition-all">
-                Convite
-              </button>
+                <AnimatePresence>
+                  {showFilter && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 100 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 100 }}
+                      transition={{ duration: 0.4 }}
+                      className="bg-white rounded-t-3xl shadow-xl p-4 max-h-[85vh] overflow-y-auto w-full absolute bottom-[-800px] left-0 right-0 z-40"
+                    >
+                      <EventFilter />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div className="flex justify-center gap-6 my-8">
+                <Link href="justino">
+                  <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+                    <p className="text-sm font-semibold text-white border border-[#F0635A] bg-[#F0635A] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
+                      Justino
+                    </p>
+                  </div>
+                </Link>
+                <Link href="/pracinha">
+                  <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+                    <p className="text-sm font-semibold text-white border border-[#F59762] bg-[#F59762] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
+                      Pracinha
+                    </p>
+                  </div>
+                </Link>
+                <Link href="/ohfregues">
+                  <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+                    <p className="text-sm font-semibold text-white border border-[#29D697] bg-[#29D697] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
+                      Oh Freguês
+                    </p>
+                  </div>
+                </Link>
+                <Link href="/highline">
+                  <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+                    <p className="text-sm font-semibold text-white border border-[#46CDFB] bg-[#46CDFB] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
+                      Highline
+                    </p>
+                  </div>
+                </Link>
+              </div>
+              <div className="flex justify-between items-center px-6">
+                <p className="text-lg font-semibold text-black">Próximos eventos</p>
+                <Link
+                  href="/eventos"
+                  className="text-[#747688] hover:text-[#747688] text-[10px] font-medium"
+                >
+                  Ver todos
+                </Link>
+              </div>
+              <div className="cards-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-8">
+                {/* O spinner de carregamento de cards só aparece se loading for true */}
+                {loading
+                  ? [...Array(6)].map((_, index) => (
+                      <div
+                        key={index}
+                        className="border border-blue-300 shadow rounded-lg p-4 w-full h-[250px] mx-auto animate-pulse"
+                      >
+                        <div className="animate-pulse flex flex-col h-full">
+                          <div className="bg-slate-700 h-3/4 w-full rounded-t-lg"></div>
+                          <div className="flex-1 space-y-4 pt-4">
+                            <div className="h-4 bg-slate-700 rounded w-3/4 mx-auto"></div>
+                            <div className="h-4 bg-slate-700 rounded w-1/2 mx-auto"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  : events.map((event) => <Card key={event.id} event={event} />)}
+              </div>
+
+              <div className="relative flex flex-col items-center mt-8">
+                <Image
+                  src={Promo}
+                  alt="Promoção"
+                  className="w-full max-w-[350px] rounded-lg shadow-md"
+                />
+                <div className="absolute top-1/2 left-16 transform -translate-y-1/2">
+                  <h3 className="text-xl font-bold text-[#000]">Indique e Ganhe</h3>
+                  <p className="text-sm mt-2 text-[#000]">
+                    Ganhe até <span className="font-semibold">25% de desconto</span>
+                  </p>
+                  <button className="mt-4 bg-[#2563eb] text-white px-4 py-2 rounded-full hover:bg-[#1e4db7] transition-all">
+                    Convite
+                  </button>
+                </div>
+              </div>
+
+              <Footer />
             </div>
           </div>
-
-          <Footer />
-        </div>
-      </div>
+        </>
+      )}
     </>
   );
 }
