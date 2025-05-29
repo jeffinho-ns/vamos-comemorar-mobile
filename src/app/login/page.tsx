@@ -143,7 +143,7 @@ export default function Login() {
         <div className="space-y-2">
           <button
             className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-3 hover:bg-gray-100"
-            onClick={() => alert("Login com Google ainda não implementado")}
+            onClick={() => window.location.href = `${API_URL}/auth/google`}
           >
             <FcGoogle size={22} /> Entrar com Google
           </button>
