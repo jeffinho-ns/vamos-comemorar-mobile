@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['vamos-comemorar-api.onrender.com'],
+    domains: [
+      'lh3.googleusercontent.com',
+      'vamos-comemorar-api.onrender.com'
+    ],
   },
 };
 
