@@ -1,10 +1,8 @@
 @use "tailwindcss";
-
 :root {
   --background: #ffffff;
   --foreground: #d8d8d8;
 }
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

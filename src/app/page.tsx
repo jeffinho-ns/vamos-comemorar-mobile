@@ -11,6 +11,8 @@ import Header from "./components/header/header";
 import Footer from "./components/footer/footer";
 import Intro from "./components/intro/intro";
 import EventFilter from "./components/filter/filter";
+// Importe o novo componente de loading
+import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner"; // <--- Adicione esta linha
 
 import Promo from "./assets/indique.png";
 import imgBanner from "./assets/retangulo.png";
@@ -49,7 +51,7 @@ export default function Home() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
   const router = useRouter();
-  const hasFetched = useRef(false); // ✅ evita chamada duplicada do fetch
+  const hasFetched = useRef(false);
 
   const fetchEvents = useCallback(() => {
     if (!showIntro && !hasFetched.current) {
@@ -158,16 +160,9 @@ return (
       ) : (
         <>
           {loading && (
+            // Substituímos o vídeo pelo componente LoadingSpinner
             <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-              <video
-                src="/intro/intro.mp4"
-                autoPlay
-                muted
-                playsInline
-                controls={false}
-                loop
-                className="w-full h-full object-cover pointer-events-none"
-              />
+              <LoadingSpinner /> {/* <--- Adicione esta linha */}
             </div>
           )}
 
@@ -227,7 +222,7 @@ return (
                   )}
                 </AnimatePresence>
               </div>
-              <div className="flex justify-center gap-6 my-8">
+              <div className="flex justify-center z-10 gap-6 my-8">
                 <Link href="justino">
                   <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
                     <p className="text-sm font-semibold text-white border border-[#F0635A] bg-[#F0635A] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
