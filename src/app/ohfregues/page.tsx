@@ -13,7 +13,10 @@ import "react-multi-carousel/lib/styles.css";
 import HeaderLike from "../components/headerlike/headerlike";
 import Footer from "./../components/footer/footer";
 import Programacao from "../components/programacao/programacao";
-import Profile from "../components/profile/profile";
+
+// Importar o novo componente de modal de reserva
+import PlaceReservationModal from "../components/PlaceReservationModal/PlaceReservationModal";
+
 import Carousel from "react-multi-carousel";
 
 // Imagens Oh Freguês
@@ -48,11 +51,25 @@ const responsive = {
   mobile: { breakpoint: { max: 640, min: 0 }, items: 1 },
 };
 
+// <--- DEFINA O NOME DA CASA AQUI! --->
+const CASA_DO_EVENTO = "Oh Freguês";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_URL_LOCAL;
+
+if (!API_URL) {
+  throw new Error("API_URL não está definida nas variáveis de ambiente.");
+}
+
+
+
 const OhFregues = () => {
   const [showSobre, setShowSobre] = useState(true);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  // Removido o estado profileModalIsOpen, pois Profile não é mais usado para a reserva principal
+  // const [profileModalIsOpen, setProfileModalIsOpen] = useState(false);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const router = useRouter();
+
+  // ESTADO PARA CONTROLAR A VISIBILIDADE DO PlaceReservationModal
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("lastPageLogo", logo.src);
@@ -81,8 +98,8 @@ const OhFregues = () => {
         <div className="bg-white rounded-t-2xl shadow-md p-4">
           {/* Header e logo */}
           <div className="flex flex-col items-center gap-4 text-center">
-            <Image src={logo} alt="Logo Oh Freguês" width={100} height={100} />
-            <h1 className="text-2xl font-bold">Oh Freguês</h1>
+            <Image src={logo} alt={`Logo ${CASA_DO_EVENTO}`} width={100} height={100} />
+            <h1 className="text-2xl font-bold">{CASA_DO_EVENTO}</h1>
           </div>
 
           {/* Botões sobre / eventos */}
@@ -181,7 +198,9 @@ const OhFregues = () => {
           {/* Mapa */}
           <div className="mt-4">
             <iframe
-              src="https://www.google.com/maps/embed?pb=..."
+              // Ajustando o src para ser mais genérico ou apontar para um local real se tiver um.
+              // Para 'Oh Freguês', você pode querer um novo iframe src específico para ele.
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.452932204797!2d-46.65756048866164!3d-23.55187766107386!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce583f706d871f%3A0xc3b8a1c97a22a363!2sAv.%20Central%2C%20456%20-%20Consola%C3%A7%C3%A3o%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2001306-000!5e0!3m2!1spt-BR!2sbr!4v1701392683935!5m2!1spt-BR!2sbr"
               width="100%"
               height="250"
               loading="lazy"
@@ -194,8 +213,9 @@ const OhFregues = () => {
             <p className="text-xl font-semibold">
               R$ 80,00 <span className="text-sm font-normal">/ pessoa</span>
             </p>
+            {/* Botão de Reserva: abre o modal de reserva reutilizável */}
             <button
-              onClick={() => setModalIsOpen(true)}
+              onClick={() => setIsReservationModalOpen(true)}
               className="px-6 py-2 mt-2 text-white bg-black rounded-full"
             >
               Reservar
@@ -206,7 +226,8 @@ const OhFregues = () => {
 
       <Footer />
 
-      <Profile isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} />
+      {/* Removido o componente Profile pois a funcionalidade de reserva foi movida */}
+      {/* <Profile isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} /> */}
 
       {/* Modal de imagem ampliada */}
       <Modal
@@ -225,6 +246,14 @@ const OhFregues = () => {
           />
         )}
       </Modal>
+
+      {/* RENDERIZAÇÃO DO COMPONENTE DE MODAL DE RESERVA REUTILIZÁVEL */}
+      <PlaceReservationModal
+        isOpen={isReservationModalOpen}
+        onClose={() => setIsReservationModalOpen(false)}
+        casaDoEvento={CASA_DO_EVENTO} // Passa o nome da casa (ex: "Oh Freguês")
+        API_URL={API_URL} // Passa a URL da API
+      />
     </main>
   );
 };

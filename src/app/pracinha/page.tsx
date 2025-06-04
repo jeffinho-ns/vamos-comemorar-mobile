@@ -13,8 +13,10 @@ import "react-multi-carousel/lib/styles.css";
 import HeaderLike from "../components/headerlike/headerlike";
 import Footer from "./../components/footer/footer";
 import Programacao from "../components/programacao/programacao";
-import Profile from "../components/profile/profile";
 import Carousel from "react-multi-carousel";
+
+// Importar o novo componente de modal de reserva
+import PlaceReservationModal from "../components/PlaceReservationModal/PlaceReservationModal";
 
 // Imagens Pracinha
 import logo from "../assets/pracinha/logo-pracinha.png";
@@ -48,11 +50,25 @@ const responsive = {
   mobile: { breakpoint: { max: 640, min: 0 }, items: 1 },
 };
 
+// <--- DEFINA O NOME DA CASA AQUI! --->
+const CASA_DO_EVENTO = "Pracinha"; // Ajustado para Pracinha
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_URL_LOCAL;
+
+if (!API_URL) {
+  throw new Error("API_URL não está definida nas variáveis de ambiente.");
+}
+
+
+
 const Pracinha = () => {
   const [showSobre, setShowSobre] = useState(true);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  // Removido o estado modalIsOpen, pois Profile não é mais usado para a reserva principal
+  // const [modalIsOpen, setModalIsOpen] = useState(false);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const router = useRouter();
+
+  // ESTADO PARA CONTROLAR A VISIBILIDADE DO PlaceReservationModal
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("lastPageLogo", logo.src);
@@ -73,7 +89,7 @@ const Pracinha = () => {
 
       {/* Banner fixo */}
       <div className="fixed top-0 left-0 w-full h-[300px] sm:h-[400px] z-0">
-        <Image src={imgBanner} alt="Banner" fill className="object-cover" />
+        <Image src={imgBanner} alt="Banner Pracinha" fill className="object-cover" />
       </div>
 
       {/* Conteúdo sobreposto */}
@@ -81,8 +97,8 @@ const Pracinha = () => {
         <div className="bg-white rounded-t-2xl shadow-md p-4">
           {/* Header e logo */}
           <div className="flex flex-col items-center gap-4 text-center">
-            <Image src={logo} alt="Logo Pracinha" width={100} height={100} />
-            <h1 className="text-2xl font-bold">Pracinha</h1>
+            <Image src={logo} alt={`Logo ${CASA_DO_EVENTO}`} width={100} height={100} />
+            <h1 className="text-2xl font-bold">{CASA_DO_EVENTO}</h1>
           </div>
 
           {/* Botões sobre / eventos */}
@@ -163,6 +179,7 @@ const Pracinha = () => {
                 {[icon1, icon2, icon3, icon4, icon5].map((icon, i) => (
                   <div key={i} className="flex flex-col items-center text-xs">
                     <Image src={icon} width={32} height={32} alt="Ícone" />
+                    {/* Você pode querer ajustar o texto dos ícones se for diferente para a Pracinha */}
                     <span className="mt-1">Texto</span>
                   </div>
                 ))}
@@ -175,13 +192,15 @@ const Pracinha = () => {
           {/* Localização */}
           <div className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-700">
             <MdLocationOn />
+            {/* Ajuste o endereço se necessário */}
             Rua da Alegria, 123 - Vila Urbana
           </div>
 
           {/* Mapa */}
           <div className="mt-4">
             <iframe
-              src="https://www.google.com/maps/embed?pb=..."
+              // Ajuste o src do iframe do mapa para a localização da Pracinha
+              src="https://www.google.com/maps/embed?pb=..." // Exemplo, substitua pelo URL correto
               width="100%"
               height="250"
               loading="lazy"
@@ -192,10 +211,12 @@ const Pracinha = () => {
           {/* Reservar */}
           <div className="mt-6 text-center">
             <p className="text-xl font-semibold">
+              {/* Ajuste o preço se necessário */}
               R$ 100,00 <span className="text-sm font-normal">/ pessoa</span>
             </p>
+            {/* Botão de Reserva: abre o modal de reserva reutilizável */}
             <button
-              onClick={() => setModalIsOpen(true)}
+              onClick={() => setIsReservationModalOpen(true)} // Ajustado para abrir o PlaceReservationModal
               className="px-6 py-2 mt-2 text-white bg-black rounded-full"
             >
               Reservar
@@ -206,7 +227,8 @@ const Pracinha = () => {
 
       <Footer />
 
-      <Profile isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} />
+      {/* Removido o componente Profile pois a funcionalidade de reserva foi movida */}
+      {/* <Profile isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} /> */}
 
       {/* Modal de imagem ampliada */}
       <Modal
@@ -225,6 +247,14 @@ const Pracinha = () => {
           />
         )}
       </Modal>
+
+      {/* RENDERIZAÇÃO DO COMPONENTE DE MODAL DE RESERVA REUTILIZÁVEL */}
+      <PlaceReservationModal
+        isOpen={isReservationModalOpen}
+        onClose={() => setIsReservationModalOpen(false)}
+        casaDoEvento={CASA_DO_EVENTO} // Passa o nome da casa (ex: "Pracinha")
+        API_URL={API_URL} // Passa a URL da API
+      />
     </main>
   );
 };

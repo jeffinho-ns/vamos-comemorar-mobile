@@ -17,6 +17,22 @@
   }
 }
 
+@import 'react-datepicker/dist/react-datepicker.css';
+
+
+.react-datepicker-wrapper {
+  width: 100%; 
+}
+.react-datepicker__input-container {
+  width: 100%;
+}
+.react-datepicker__input-container input {
+  width: 100%;
+  padding: 0.5rem; /* Ajuste o padding conforme seus outros inputs */
+  border-radius: 0.25rem; /* Ajuste o border-radius */
+  border: 1px solid #d1d5db; /* Cor da borda do input */
+}
+
 
 .container {
   overflow-x: hidden; /* Remove o scroll horizontal */
