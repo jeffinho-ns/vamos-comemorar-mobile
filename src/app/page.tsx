@@ -12,7 +12,7 @@ import Footer from "./components/footer/footer";
 import Intro from "./components/intro/intro";
 import EventFilter from "./components/filter/filter";
 // Importe o novo componente de loading
-import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner"; // <--- Adicione esta linha
+
 
 import Promo from "./assets/indique.png";
 import imgBanner from "./assets/retangulo.png";
@@ -162,7 +162,7 @@ return (
           {loading && (
             // Substituímos o vídeo pelo componente LoadingSpinner
             <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-              <LoadingSpinner /> {/* <--- Adicione esta linha */}
+              
             </div>
           )}
 
