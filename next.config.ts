@@ -4,7 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       'lh3.googleusercontent.com',
-      'vamos-comemorar-api.onrender.com'
+      'vamos-comemorar-api.onrender.com',
+      'maps.googleapis.com'
     ],
   },
 };

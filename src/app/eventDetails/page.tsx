@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import HeaderLike from "../components/headerlike/headerlike";
-import Footer from "../components/footer/footer";
-import defaultLogo from "../assets/logo_blue.png";
-import DateIcon from "../assets/Date.png";
-import LocIcon from "../assets/Location.png";
 import Modal from "react-modal";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // AnimatePresence importado
+import { FaArrowLeft, FaHeart, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
+import LocationMap from "../components/LocationMap/LocationMap";
+import defaultLogo from "../assets/logo_blue.png";
 
-
+ 
+// Interface do Evento (sem alterações)
 interface Event {
   id: string;
   title: string;
@@ -38,44 +37,33 @@ interface Event {
 
 const EventDetails = () => {
   const [eventData, setEventData] = useState<Event | null>(null);
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
-
-  const [showReserva, setShowReserva] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const router = useRouter();
+  
+  // Estados para o formulário de reserva
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [quantidadePessoas, setQuantidadePessoas] = useState(1);
   const [mesas, setMesas] = useState("1 Mesa / 6 cadeiras");
   const [userId, setUserId] = useState<number | null>(null);
-  const [comboImage, setComboImage] = useState<string | null>(null);
-  const [observacao, setObservacao] = useState<string>("");
-  const [logoSrc, setLogoSrc] = useState(defaultLogo.src);
 
-  const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
 
+   console.log("CHAVE DE API NO FRONTEND:", process.env.NEXT_PUBLIC_Maps_API_KEY);
+
+  // Carrega os dados do evento e do usuário
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
-    if (storedUserId && !isNaN(Number(storedUserId))) {
-      setUserId(Number(storedUserId));
-    }
+    if (storedUserId) setUserId(Number(storedUserId));
   
     const storedEventData = localStorage.getItem("selectedEvent");
     if (storedEventData) {
       setEventData(JSON.parse(storedEventData));
+    } else {
+      router.push('/');
     }
-  
-    const storedLogo = localStorage.getItem("lastPageLogo");
-    if (storedLogo) {
-      setLogoSrc(storedLogo);
-    }
-  }, [API_URL]); // Remova eventData daqui
+  }, [router]);
 
-  useEffect(() => {
-    if (eventData) {
-      setComboImage(eventData.imagem_do_combo);
-      setObservacao(eventData.observacao || "Sem observação.");
-    }
-  }, [eventData]);
-
+  // Lógica de envio da reserva
   const handleSubmitReservation = async () => {
     if (!userId) {
       router.push("/login");
@@ -115,208 +103,158 @@ const EventDetails = () => {
     router.push("/");
   };
 
-  if (!eventData) return <div className="p-4 text-center">Carregando...</div>;
+
+  if (!eventData) {
+    return (
+      <div className="bg-gray-900 w-full h-screen flex items-center justify-center text-white">
+        Carregando...
+      </div>
+    );
+  }
 
   return (
-    <>
-      <HeaderLike />
-      <main className="container-mobile p-4 max-w-md mx-auto text-gray-800">
-        {/* Imagem do Evento */}
-        <div className="w-full h-[250px] relative rounded-2xl overflow-hidden shadow-md mb-6">
-          <Image
-            src={`${API_URL}/uploads/events/${eventData.imagem_do_evento}`}
-            alt={eventData.nome_do_evento}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-2xl"
-            unoptimized
-          />
-        </div>
+    <div className="bg-gray-900 h-screen w-full overflow-hidden">
+      {/* Camada 1: Imagem de Fundo Fixa */}
+      <motion.div 
+        className="absolute top-0 left-0 w-full h-3/4"
+        initial={{ scale: 1.1 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <Image
+          src={`${API_URL}/uploads/events/${eventData.imagem_do_evento}`}
+          alt={eventData.nome_do_evento}
+          fill={true}
+          className="object-cover opacity-60"
+          
+          unoptimized
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+      </motion.div>
 
-        {/* Título e Info Principal */}
-        <div className="text-center space-y-1 mb-6">
-          <h1 className="text-2xl font-bold">{eventData.nome_do_evento}</h1>
-          <p className="text-sm text-gray-500">{eventData.casa_do_evento}</p>
-          <p className="text-sm text-gray-500">{eventData.hora_do_evento}</p>
-        </div>
-
-        {/* Data e Local */}
-        <div className="flex items-center gap-3 text-sm text-gray-700 mb-4">
-          <Image src={DateIcon} alt="Data" width={24} height={24} />
-          <span>
-            {new Date(eventData.data_do_evento).toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 text-sm text-gray-700 mb-6">
-          <Image src={LocIcon} alt="Local" width={24} height={24} />
-          <span>{eventData.local_do_evento}</span>
-        </div>
-
-        {/* Descrição */}
-        {eventData.descricao && (
-          <div className="bg-gray-100 p-4 rounded-xl mb-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-2">Descrição</h3>
-            <p className="text-gray-700 mb-1">{eventData.descricao}</p>
-            <p className="text-sm text-blue-600 italic">{eventData.categoria}</p>
-          </div>
-        )}
-
-        {/* Info de Valores e Brindes */}
-        <div className="grid grid-cols-1 gap-4 mb-6">
-         {/* Info de Valores e Brindes */}
-         <div className="grid grid-cols-1 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm text-gray-500">Brinde</h3>
-            <p className="font-medium">{eventData.brinde}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm text-gray-500">Valor da Mesa</h3>
-            <p className="font-medium">R$ {eventData.valor_da_mesa}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm text-gray-500">Valor da Entrada</h3>
-            <p className="font-medium">R$ {eventData.valor_da_entrada}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm text-gray-500">Nº de Convidados</h3>
-            <p className="font-medium">{eventData.numero_de_convidados}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm text-gray-500">Observações</h3>
-            <p className="font-medium">{eventData.observacao}</p>
-          </div>
-        </div>
-        </div>
-
-        {/* Imagem do Combo */}
-        {eventData.imagem_do_combo && (
-          <div className="rounded-xl overflow-hidden shadow-md mb-6">
-            <Image
-              src={`${API_URL}/uploads/events/${eventData.imagem_do_combo}`}
-              alt="Imagem do Combo"
-              width={600}
-              height={300}
-              className="w-full h-auto object-cover"
-              unoptimized
-            />
-          </div>
-        )}
-
-        {/* Botão de Reserva */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            setShowReserva(!showReserva);
-          }}
-          className="flex items-center bg-[#5D56F3]/80 text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:bg-blue-600/90 transition duration-300"
-        >
-          Fazer Reserva
+      {/* Header com botões */}
+      <header className="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-20">
+        <button onClick={() => router.back()} className="bg-white/20 p-3 rounded-full text-white backdrop-blur-sm">
+          <FaArrowLeft />
         </button>
+        <button className="bg-white/20 p-3 rounded-full text-white backdrop-blur-sm">
+          <FaHeart />
+        </button>
+      </header>
 
-        {/* Reserva Modal */}
-        <AnimatePresence>
-          {showReserva && (
-            <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 100 }}
-              transition={{ duration: 0.4 }}
-              className="bg-white rounded-t-3xl shadow-xl p-4 max-h-[85vh] overflow-y-auto w-full fixed bottom-0 left-0 right-0 z-40"
-            >
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm">Pessoas</label>
-                  <select
-                    className="p-2 rounded border"
-                    value={quantidadePessoas}
-                    onChange={(e) => setQuantidadePessoas(Number(e.target.value))}
-                  >
-                    {Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
-                      <option key={num} value={num}>
-                        {num} Pessoa{num > 1 ? "s" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm">Mesas</label>
-                  <select
-                    className="p-2 rounded border"
-                    value={mesas}
-                    onChange={(e) => setMesas(e.target.value)}
-                  >
-                    {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
-                      <option
-                        key={num}
-                        value={`${num} Mesa${num > 1 ? "s" : ""} / ${num * 6} cadeiras`}
-                      >
-                        {num} Mesa{num > 1 ? "s" : ""} / {num * 6} cadeiras
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleSubmitReservation}
-                  className="bg-[#08738a] text-white py-3 rounded-full text-center text-sm font-semibold mt-4"
-                >
-                  Confirmar Reserva
-                </button>
-              </div>
-
-              {/* Modal de confirmação */}
-              <Modal
-                isOpen={modalIsOpen}
-                onRequestClose={() => setModalIsOpen(false)}
-                contentLabel="Confirmação de Reserva"
-                className="bg-white p-6 rounded-lg max-w-sm mx-auto mt-32 shadow-lg text-center"
-                overlayClassName="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center"
-              >
-                <h2 className="text-xl font-bold mb-2">Falta Pouco!</h2>
-                <p className="text-sm mb-4">Sua reserva está sendo processada!</p>
-                <button
-                  onClick={handleFinalize}
-                  className="bg-[#08738a] text-white py-2 px-6 rounded-full"
-                >
-                  Finalizar
-                </button>
-              </Modal>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Organização */}
-        <div className="flex items-center mt-6">
-          <span className="text-sm text-gray-500 mr-2">Organizado por:</span>
-          <Image
-            src={
-              eventData.place?.logo
-                ? `${API_URL}/uploads/${eventData.place.logo}`
-                : defaultLogo.src
+      {/* Camada 2: Painel Deslizante de Conteúdo */}
+      <motion.div
+        className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-2xl z-10"
+        initial={{ y: "65%" }}
+        animate={{ y: isPanelOpen ? "15%" : "65%" }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        onDragEnd={(event, info) => {
+            if(info.offset.y > 100) {
+                setIsPanelOpen(false)
+            } else if (info.offset.y < -100) {
+                setIsPanelOpen(true)
             }
-            alt="Logo da casa"
-            width={40}
-            height={40}
-            className="rounded-full border"
-            unoptimized
-          />
-          <span className="ml-2 font-medium">
-            {eventData.place?.name || "Casa não identificada"}
-          </span>
+        }}
+      >
+        <div className="w-full py-4 flex justify-center cursor-grab">
+            <div className="w-16 h-1.5 bg-gray-300 rounded-full"></div>
         </div>
-      </main>
-      <Footer />
-    </>
+
+        {/* Informações iniciais */}
+        <div className="px-6 pb-4">
+            <h1 className="text-3xl font-bold text-gray-900">{eventData.nome_do_evento}</h1>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 text-gray-600">
+                <div className="flex items-center gap-2"><FaMapMarkerAlt className="text-blue-500" /><span>{eventData.local_do_evento}</span></div>
+                <div className="flex items-center gap-2"><FaCalendarAlt className="text-blue-500" /><span>{new Date(eventData.data_do_evento).toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}</span></div>
+            </div>
+        </div>
+
+        {/* Conteúdo completo (scrollable) */}
+        <div className="px-6 pb-32 h-[70vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-800">Sobre o Evento</h3>
+            <p className="text-gray-600 mb-6">{eventData.descricao || "Nenhuma descrição disponível."}</p>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gray-100 p-3 rounded-xl"><h4 className="text-sm text-gray-500">Brinde</h4><p className="font-semibold">{eventData.brinde}</p></div>
+                <div className="bg-gray-100 p-3 rounded-xl"><h4 className="text-sm text-gray-500">Mesa</h4><p className="font-semibold">R$ {eventData.valor_da_mesa}</p></div>
+                <div className="bg-gray-100 p-3 rounded-xl"><h4 className="text-sm text-gray-500">Entrada</h4><p className="font-semibold">R$ {eventData.valor_da_entrada}</p></div>
+                <div className="bg-gray-100 p-3 rounded-xl"><h4 className="text-sm text-gray-500">Convidados</h4><p className="font-semibold">{eventData.numero_de_convidados}</p></div>
+            </div>
+
+            {eventData.imagem_do_combo && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2 text-gray-800">Combo Especial</h3>
+                <Image src={`${API_URL}/uploads/events/${eventData.imagem_do_combo}`} alt="Imagem do Combo" width={600} height={300} className="w-full h-auto object-cover rounded-xl" unoptimized />
+              </div>
+            )}
+                        {/* ===== MAPA DA LOCALIZAÇÃO INSERIDO AQUI ===== */}
+                <LocationMap address={eventData.local_do_evento} />
+            <div className="mt-8 pt-6 border-t border-gray-200">
+                <h3 className="text-xl font-bold mb-4 text-gray-800">Faça sua Reserva</h3>
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">Quantidade de Pessoas</label>
+                        <select className="p-3 rounded-lg border border-gray-300 bg-gray-50" value={quantidadePessoas} onChange={(e) => setQuantidadePessoas(Number(e.target.value))}>
+                            {Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
+                                <option key={num} value={num}>{num} Pessoa{num > 1 ? "s" : ""}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">Mesas</label>
+                        <select className="p-3 rounded-lg border border-gray-300 bg-gray-50" value={mesas} onChange={(e) => setMesas(e.target.value)}>
+                            {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
+                                <option key={num} value={`${num} Mesa${num > 1 ? "s" : ""} / ${num * 6} cadeiras`}>
+                                    {num} Mesa{num > 1 ? "s" : ""} / {num * 6} cadeiras
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <button onClick={handleSubmitReservation} className="bg-green-600 text-white py-3 rounded-full text-center font-semibold mt-4 hover:bg-green-700 transition-colors">
+                        Confirmar Reserva
+                    </button>
+                </div>
+            </div>
+        </div>
+      </motion.div>
+
+       {/* ===== BOTÃO DE AÇÃO CONDICIONAL ===== */}
+       <AnimatePresence>
+        {!isPanelOpen && (
+            <motion.div
+                className="absolute bottom-0 left-0 w-full p-4 z-20 bg-gradient-to-t from-white via-white to-transparent"
+                initial={{ y: "100%" }}
+                animate={{ y: "0%" }}
+                exit={{ y: "100%" }}
+                transition={{ ease: "easeInOut", duration: 0.4 }}
+            >
+                <button
+                    onClick={() => setIsPanelOpen(true)}
+                    className="w-full bg-blue-600 text-white py-4 rounded-full text-center font-bold text-lg shadow-lg hover:bg-blue-700 transition-colors"
+                >
+                    Ver Detalhes e Reservar
+                </button>
+            </motion.div>
+        )}
+       </AnimatePresence>
+
+      {/* Modal de confirmação */}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        contentLabel="Confirmação de Reserva"
+        className="bg-white p-6 rounded-lg max-w-sm mx-auto mt-32 shadow-lg text-center outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <h2 className="text-xl font-bold mb-2">Falta Pouco!</h2>
+        <p className="text-sm mb-4 text-gray-600">Sua reserva foi enviada para o estabelecimento e está aguardando confirmação.</p>
+        <button onClick={handleFinalize} className="bg-blue-600 text-white py-2 px-8 rounded-full">
+          Entendido
+        </button>
+      </Modal>
+    </div>
   );
 };
 
