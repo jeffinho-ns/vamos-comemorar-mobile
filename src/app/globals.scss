@@ -16,6 +16,9 @@
     --foreground: #ededed;
   }
 }
+.touch-none {
+  touch-action: none;
+}
 
 @import 'react-datepicker/dist/react-datepicker.css';
 
