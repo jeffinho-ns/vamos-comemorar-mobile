@@ -1,4 +1,5 @@
 @use "tailwindcss";
+@import 'react-datepicker/dist/react-datepicker.css';
 :root {
   --background: #ffffff;
   --foreground: #d8d8d8;
@@ -16,11 +17,14 @@
     --foreground: #ededed;
   }
 }
+
+
+
 .touch-none {
   touch-action: none;
 }
 
-@import 'react-datepicker/dist/react-datepicker.css';
+
 
 
 .react-datepicker-wrapper {
@@ -208,4 +212,5 @@ header {
   
   z-index: 20 !important; /* Garante que o header fique acima do banner */
 }
+
 

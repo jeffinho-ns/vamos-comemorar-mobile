@@ -7,55 +7,49 @@ import Link from "next/link";
 import { MdSearch, MdFilterList, MdLocationOn } from "react-icons/md";
 import { FaHeart } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+
+// COMPONENTES E TIPAGENS IMPORTADOS
 import Header from "./components/header/header";
 import Footer from "./components/footer/footer";
 import Intro from "./components/intro/intro";
 import EventFilter from "./components/filter/filter";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
+import FeaturedEventCard from "./components/FeaturedEventCard/FeaturedEventCard";
+import { Event } from "./types/index";
 
+// ASSETS
 import Promo from "./assets/indique.png";
 import imgBanner from "./assets/retangulo-1.png";
 import logoWhite from "./assets/logo_blue.png";
 
-import Avatar1 from "./assets/avatar/001.jpg";
-import Avatar2 from "./assets/avatar/002.jpg";
-import Avatar3 from "./assets/avatar/003.jpeg";
-import Avatar4 from "./assets/avatar/004.jpg";
-
-// Interface do Evento atualizada com todos os campos necessários
-interface Event {
-  id: string;
-  title: string;
-  address: string;
-  imagem_do_evento: string;
-  nome_do_evento: string;
-  casa_do_evento: string;
-  local_do_evento: string;
-  data_do_evento: string;
-  tipo_evento: string;
-  dia_da_semana: number;
-  hora_do_evento: string;
-  preco?: number;
-  place: {
-    name: string;
-    logo: string;
-  };
-}
-
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showIntro, setShowIntro] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !localStorage.getItem("introShown");
-    }
-    return true;
-  });
+  const [showIntro, setShowIntro] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL;
-  const router = useRouter();
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const hasFetched = useRef(false);
+
+  const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_LOCAL || '';
+
+  useEffect(() => {
+    const introWasShown = localStorage.getItem("introShown");
+    if (introWasShown) {
+      setShowIntro(false);
+    }
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   const fetchEvents = useCallback(() => {
     if (!showIntro && !hasFetched.current) {
@@ -67,11 +61,10 @@ export default function Home() {
         .then((response) => response.json())
         .then((data) => {
           if (Array.isArray(data)) {
-            // Simulando os novos campos para teste
             const eventsWithDetails = data.map((event, index) => ({
               ...event,
               preco: index % 3 === 0 ? 0 : 25.00,
-              dia_da_semana: (index % 7) + 1, // Simula um dia de 1 a 7
+              dia_da_semana: (index % 7) + 1,
             }));
             setEvents(eventsWithDetails);
           } else {
@@ -96,7 +89,6 @@ export default function Home() {
     fetchEvents();
   };
 
-  // Converte o número no nome do dia da semana
   const getDayOfWeekName = (dayNumber: number): string => {
     switch (dayNumber) {
       case 1: return 'Segunda';
@@ -110,80 +102,11 @@ export default function Home() {
     }
   };
 
-  // <-- MUDANÇA: Nova função para formatar a hora -->
   const formatTime = (timeString: string): string => {
     if (!timeString) return '';
-    // Pega apenas a parte de hora e minuto (ex: de "22:30:00" para "22:30")
     return timeString.split(':').slice(0, 2).join(':');
   };
-
-
-  // CARD DE DESTAQUES (design original)
-  const Card: React.FC<{ event: Event }> = ({ event }) => {
-    const getEventPagePath = (place: string) => {
-      switch (place) {
-        case "Justino": return `/justino/eventDetails`;
-        case "Pracinha": return `/pracinha/eventDetails`;
-        case "Oh Freguês": return `/ohfregues/eventDetails`;
-        case "Highline": return `/highline/eventDetails`;
-        default: return `/eventDetails`;
-      }
-    };
-    const handleClick = () => localStorage.setItem("selectedEvent", JSON.stringify(event));
-
-    // Função de formatação específica para este card
-    const formatCardDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit' };
-        const formattedDate = date.toLocaleDateString('pt-BR', options).replace('.', '');
-        return (formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)).split(' ');
-    };
-
-    const [month, day] = formatCardDate(event.data_do_evento);
-
-    return (
-      <Link href={getEventPagePath(event.casa_do_evento)} onClick={handleClick}>
-        <motion.div
-          className="relative bg-white rounded-lg shadow-md overflow-hidden card-container"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <div className="relative w-full h-[250px]">
-            <Image
-              src={`${API_URL}/uploads/events/${event.imagem_do_evento}`}
-              alt={event.nome_do_evento}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          </div>
-          <div className="p-6">
-            <h2 className="text-xl font-bold">{event.casa_do_evento}</h2>
-            <p className="text-sm text-gray-400 mt-2">{event.local_do_evento}</p>
-            <div className="flex items-center mt-2">
-              <div className="flex -space-x-2 overflow-hidden">
-                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar1} alt="User 1" />
-                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar2} alt="User 2" />
-                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar3} alt="User 3" />
-                <Image className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src={Avatar4} alt="User 4" />
-              </div>
-              <p className="text-sm text-gray-500 ml-2">+20 Seguindo</p>
-            </div>
-          </div>
-          <div className="absolute top-2 left-2 bg-white rounded-lg p-2 flex flex-col items-center justify-center h-12 w-12">
-            <span className="text-xs font-bold text-red-500">{month}</span>
-            <span className="text-lg font-bold text-red-500">{day}</span>
-          </div>
-          <div className="absolute top-2 right-2 bg-white rounded-full p-2">
-            <FaHeart className="text-red-500 text-2xl" />
-          </div>
-        </motion.div>
-      </Link>
-    );
-  };
-
-  // CARD DE EVENTOS SEMANAIS (novo design)
+  
   const EventCardRow: React.FC<{ event: Event }> = ({ event }) => {
     const getEventPagePath = (place: string) => {
       switch (place) {
@@ -239,8 +162,7 @@ export default function Home() {
     );
   };
 
-
-return (
+  return (
     <>
       {showIntro ? (
         <Intro onFinish={handleIntroFinish} />
@@ -260,7 +182,7 @@ return (
                   <Image src={logoWhite} alt="Logo" className="w-[120px] h-auto" />
                 </Link>
               </div>
-              <div className="absolute inset-0 w-full h-[450px] z-0 mt-[-100px] overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[450px] z-0 mt-[-100px] overflow-hidden">
                 <Image
                   src={imgBanner}
                   alt="Banner"
@@ -300,7 +222,7 @@ return (
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 100 }}
                       transition={{ duration: 0.4 }}
-                      className="bg-white rounded-t-3xl shadow-xl p-4 max-h-[85vh] overflow-y-auto w-full absolute bottom-[-800px] left-0 right-0 z-40"
+                      className="bg-white rounded-t-3xl shadow-xl p-4 max-h-[85vh] overflow-y-auto w-full absolute bottom-[-800px] left-0 right-0 z-90"
                     >
                       <EventFilter />
                     </motion.div>
@@ -308,45 +230,47 @@ return (
                 </AnimatePresence>
               </div>
               
-              <div className="flex justify-between items-center px-6 mt-[30px] z-10">
+              <div className="flex justify-between items-center px-4 md:px-6 mt-[30px] z-10">
                 <p className="text-lg font-semibold text-white">Destaques</p>
+                <div className="flex items-center gap-2">
+           
                 <Link
-                  href="/eventos"
+                  href="/events"
                   className="text-[#747688] hover:text-[#747688] text-[10px] font-medium"
                 >
                   Ver todos
                 </Link>
+                </div>
               </div>
-              <div className="cards-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-6 px-4">
+              
+              <div
+                ref={scrollContainerRef}
+                className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth py-6 px-4 gap-4 scrollbar-hide"
+              >
                 {loading
                   ? [...Array(3)].map((_, index) => (
-                      <div
-                        key={index}
-                        className="border border-slate-700 shadow rounded-lg p-4 w-full h-[350px] mx-auto animate-pulse"
-                      >
-                        <div className="animate-pulse flex flex-col h-full">
-                          <div className="bg-slate-700 h-3/5 w-full rounded-t-lg"></div>
-                          <div className="flex-1 space-y-4 pt-4 px-2">
-                            <div className="h-4 bg-slate-700 rounded w-3/4"></div>
-                            <div className="h-4 bg-slate-700 rounded w-1/2"></div>
-                          </div>
-                        </div>
+                      <div key={index} className="snap-start flex-none w-4/5 md:w-1/3">
+                        <div className="w-full h-[400px] bg-slate-700 rounded-2xl animate-pulse"></div>
                       </div>
                     ))
-                  : events.map((event) => <Card key={event.id} event={event} />)}
+                  : events.map((event) => (
+                      <div className="snap-start flex-none w-4/5 md:w-1/3" key={event.id}>
+                        <FeaturedEventCard event={event} apiUrl={API_URL} />
+                      </div>
+                    ))}
               </div>
 
               <div className="flex justify-between items-center px-6 z-10">
                 <p className="text-lg font-semibold text-black">Por categorias</p>
                 <Link
-                  href="/eventos"
+                  href="/events"
                   className="text-[#747688] hover:text-[#747688] text-[10px] font-medium"
                 >
                   Ver todos
                 </Link>
               </div>
 
-                            <div className="flex justify-center z-10 gap-6 my-8">
+              <div className="flex justify-center z-10 gap-6 my-8">
                 <Link href="justino">
                   <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
                     <p className="text-sm font-semibold text-white border border-[#F0635A] bg-[#F0635A] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
@@ -377,43 +301,38 @@ return (
                 </Link>
               </div>
 
-
-
-             {/* Seção de Eventos Semanais - 2 por linha */}
-                <div className="flex justify-between items-center px-6 mt-8 z-10">
-                    <p className="text-lg font-semibold text-black">Eventos Semanais</p>
-                    <Link
-                    href="/eventos?tipo=semanal"
-                    className="text-[#747688] hover:text-[#747688] text-[10px] font-medium"
-                    >
-                    Ver todos
-                    </Link>
-                </div>
-                <div className="grid grid-cols-2 gap-4 my-6 px-4">
-                    {loading
-                    ? [...Array(4)].map((_, index) => (
-                        <div key={index} className="rounded-xl bg-white p-2 w-full h-[240px] mx-auto animate-pulse">
-                            <div className="animate-pulse flex flex-col h-full">
-                              <div className="bg-slate-300 h-1/2 w-full rounded-lg"></div>
-                              <div className="h-1/2 p-2 flex flex-col justify-between">
-                                  <div className="h-4 bg-slate-300 rounded w-3/4 mt-1"></div>
-                                  <div className="h-3 bg-slate-300 rounded w-1/2"></div>
-                                  <div className="border-t mt-2 pt-3 flex justify-between">
-                                    <div className="h-3 bg-slate-300 rounded w-2/3"></div>
-                                    <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
-                                  </div>
-                              </div>
+              <div className="flex justify-between items-center px-6 mt-8 z-10">
+                <p className="text-lg font-semibold text-black">Eventos Semanais</p>
+                <Link
+                  href="/eventos?tipo=semanal"
+                  className="text-[#747688] hover:text-[#747688] text-[10px] font-medium"
+                >
+                  Ver todos
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 gap-4 my-6 px-4">
+                {loading
+                  ? [...Array(4)].map((_, index) => (
+                      <div key={index} className="rounded-xl bg-white p-2 w-full h-[240px] mx-auto animate-pulse">
+                        <div className="animate-pulse flex flex-col h-full">
+                          <div className="bg-slate-300 h-1/2 w-full rounded-lg"></div>
+                          <div className="h-1/2 p-2 flex flex-col justify-between">
+                            <div className="h-4 bg-slate-300 rounded w-3/4 mt-1"></div>
+                            <div className="h-3 bg-slate-300 rounded w-1/2"></div>
+                            <div className="border-t mt-2 pt-3 flex justify-between">
+                              <div className="h-3 bg-slate-300 rounded w-2/3"></div>
+                              <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
                             </div>
+                          </div>
                         </div>
-                        ))
-                    : events
-                        .filter(event => event.tipo_evento === 'semanal')
-                        .map((event) => <EventCardRow key={event.id} event={event} />)}
-                </div>
-              {/* Fim da Seção de Eventos Semanais */}
+                      </div>
+                    ))
+                  : events
+                      .filter(event => event.tipo_evento === 'semanal')
+                      .map((event) => <EventCardRow key={event.id} event={event} />)}
+              </div>
 
-
-                            <div className="relative flex flex-col items-center mt-8 px-4">
+              <div className="relative flex flex-col items-center mt-8 px-4">
                 <Image
                   src={Promo}
                   alt="Promoção"
@@ -429,7 +348,6 @@ return (
                   </button>
                 </div>
               </div>
-
 
               <div className="flex justify-center z-10 gap-6 my-8">
                 <Link href="justino">

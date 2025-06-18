@@ -8,7 +8,7 @@ const LoadingSpinner: React.FC = () => {
     <div className="flex flex-col items-center justify-center">
       {/* Imagem do GIF */}
       <Image
-        src="/intro/loading.mp4" // <--- Altere para o caminho do seu GIF na pasta `public`
+        src="/intro/loading.gif" // <--- Altere para o caminho do seu GIF na pasta `public`
         alt="Carregando..."
         width={150} // Ajuste a largura conforme o tamanho do seu GIF
         height={150} // Ajuste a altura conforme o tamanho do seu GIF
