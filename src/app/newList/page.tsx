@@ -27,7 +27,7 @@ const mockListTypes: ListType[] = [{ id: "lt1", name: "Pista" }, { id: "lt2", na
 
 const NewListPage = () => {
     const router = useRouter();
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     // Estados
     const [events, setEvents] = useState<Event[]>([]);
@@ -132,9 +132,9 @@ const NewListPage = () => {
 
             {selectedEvent ? (
                 <motion.div
-                    className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-2xl z-20"
+                    className="absolute top-10 bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-2xl z-20"
                     initial={{ y: "88%" }}
-                    animate={{ y: isPanelOpen ? "5%" : "88%" }}
+                    animate={{ y: isPanelOpen ? "20%" : "88%" }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     drag={isDraggable ? "y" : false}
                     dragConstraints={{ top: 0, bottom: 0 }}
