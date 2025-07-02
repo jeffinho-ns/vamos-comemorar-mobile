@@ -71,6 +71,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, apiUrl }) 
               <Image className="inline-block h-9 w-9 rounded-full ring-2 ring-white" src={Avatar1} alt="User 1" />
               <Image className="inline-block h-9 w-9 rounded-full ring-2 ring-white" src={Avatar2} alt="User 2" />
               <Image className="inline-block h-9 w-9 rounded-full ring-2 ring-white" src={Avatar3} alt="User 3" />
+              <Image className="inline-block h-9 w-9 rounded-full ring-2 ring-white" src={Avatar4} alt="User 4" />
             </div>
             <p className="text-sm text-gray-200 ml-3">+20 pessoas seguindo</p>
           </div>

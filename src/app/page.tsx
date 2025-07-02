@@ -41,15 +41,15 @@ export default function Home() {
     }
   }, []);
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
-      scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
+  // const scroll = (direction: 'left' | 'right') => {
+  //   if (scrollContainerRef.current) {
+  //     const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+  //     scrollContainerRef.current.scrollBy({
+  //       left: direction === 'left' ? -scrollAmount : scrollAmount,
+  //       behavior: 'smooth',
+  //     });
+  //   }
+  // };
 
   const fetchEvents = useCallback(() => {
     if (!showIntro && !hasFetched.current) {
@@ -151,10 +151,10 @@ export default function Home() {
             
             <div className="mt-4 pt-2 border-t border-gray-100 flex justify-between items-center">
               <div className="flex items-center gap-1 text-sm text-gray-600 w-4/5">
-                <MdLocationOn className="text-blue-500 flex-shrink-0" />
+                <MdLocationOn className="text-[#F76C11] flex-shrink-0" />
                 <span className="truncate">{event.local_do_evento}</span>
               </div>
-              <FaHeart className="text-blue-500 text-lg" />
+              <FaHeart className="text-[#F76C11] text-lg" />
             </div>
           </div>
         </motion.div>
@@ -202,17 +202,18 @@ export default function Home() {
                       className="w-full bg-transparent p-2 focus:outline-none text-white placeholder-white"
                     />
                   </div>
-                  <button
+                    <button
                     onClick={(e) => {
                       e.preventDefault();
                       setShowFilter(!showFilter);
                     }}
                     type="button"
-                    className="flex items-center bg-[#F76C11]/80 text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:bg-blue-600/90 transition duration-300"
+                    className="flex items-center bg-gradient-to-r from-[#e18f24] via-[#fec923] to-[#ffbd1f] text-white px-4 py-2 ml-4 rounded-full backdrop-blur-sm hover:opacity-90 transition duration-300"
                   >
                     <MdFilterList className="text-xl mr-2" />
                     Filters
                   </button>
+
                 </form>
 
                 <AnimatePresence>
