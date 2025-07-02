@@ -182,7 +182,7 @@ export default function Home() {
                   <Image src={logoWhite} alt="Logo" className="w-[120px] h-auto" />
                 </Link>
               </div>
-              <div className="absolute top-0 left-0 w-full h-[450px] z-0 mt-[-100px] overflow-hidden">
+              <div className="absolute top-0 left-0 w-full rounded-[20px] h-[450px] z-0 mt-[-100px] overflow-hidden">
                 <Image
                   src={imgBanner}
                   alt="Banner"
@@ -260,7 +260,7 @@ export default function Home() {
                     ))}
               </div>
 
-              <div className="flex justify-between items-center px-6 z-10">
+              <div className="flex justify-between items-center px-6 z-2">
                 <p className="text-lg font-semibold text-black">Por categorias</p>
                 <Link
                   href="/events"
@@ -270,7 +270,7 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="flex justify-center z-10 gap-6 my-8">
+              <div className="flex justify-center z-2 gap-6 my-8">
                 <Link href="justino">
                   <div className="flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
                     <p className="text-sm font-semibold text-white border border-[#F0635A] bg-[#F0635A] rounded-[20px] px-[10px] py-[5px] pb-[6px]">
@@ -301,7 +301,7 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="flex justify-between items-center px-6 mt-8 z-10">
+              <div className="flex justify-between items-center px-6 mt-8 z-2">
                 <p className="text-lg font-semibold text-black">Eventos Semanais</p>
                 <Link
                   href="/eventos?tipo=semanal"
