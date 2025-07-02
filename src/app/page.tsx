@@ -20,7 +20,7 @@ import { Event } from "./types/index";
 // ASSETS
 import Promo from "./assets/indique.png";
 import imgBanner from "./assets/retangulo-1.png";
-import logoWhite from "./assets/logo_blue.png";
+import logoWhite from "./assets/logo-agilizai-h.png";
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
