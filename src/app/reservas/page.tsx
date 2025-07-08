@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Footer from "../components/footer/footer";
+
 import HeaderLike from "../components/headerlike/headerlike";
  import defaultLogo from "../../app/assets/logo-agilizai-h.png";
  
@@ -192,7 +192,7 @@ const Reservas = () => {
           Confirmar Reserva
         </button>
       </div>
-      <Footer />
+ 
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
