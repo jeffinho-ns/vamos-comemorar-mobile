@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import logoWhite from "../../app/assets/logo_blue.png";
+
+import LogoApp from "../../app/assets/logo-agilizai-h.png";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
@@ -64,7 +65,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-6">
         <div className="flex justify-center">
           <Link href="/">
-            <Image src={logoWhite} alt="Logo" className="h-16 w-auto" />
+            <Image src={LogoApp} alt="Logo" className="h-16 w-auto" />
           </Link>
         </div>
 

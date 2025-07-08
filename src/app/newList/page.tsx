@@ -11,19 +11,17 @@ import {
     FaTicketAlt,
     FaClock,
     FaGift,
-    FaTag
+    FaTag,
+    FaChevronDown // Ícone para o botão de fechar
 } from "react-icons/fa";
 import clsx from 'clsx';
 
-// Interfaces e Mocks
+// Interfaces e Mocks (sem alterações)
 interface Event { id: string | number; title: string; address: string; imagem_do_evento: string; hora_do_evento: string; categoria: string; valor_da_mesa: string; brinde: string; numero_de_convidados: string; valor_da_entrada: string; imagem_do_combo: string; observacao: string; nome_do_evento: string; casa_do_evento: string; local_do_evento: string; data_do_evento: string; descricao?: string; place?: { name: string; logo: string; }; }
 interface Promoter { id: string; name: string; }
 interface ListType { id: string; name: "Pista" | "Área VIP" | "Camarote"; }
 const mockPromoters: Promoter[] = [{ id: "promo1", name: "Ricardo Alves" }, { id: "promo2", name: "Juliana Costa" }, { id: "promo3", name: "Equipe NightSP" },];
 const mockListTypes: ListType[] = [{ id: "lt1", name: "Pista" }, { id: "lt2", name: "Área VIP" }, { id: "lt3", name: "Camarote" },];
-
-// Instale o clsx com: npm install clsx
-// Para o scrollbar-hide: npm install -D tailwind-scrollbar-hide
 
 const NewListPage = () => {
     const router = useRouter();
@@ -37,10 +35,12 @@ const NewListPage = () => {
     const [selectedListTypeId, setSelectedListTypeId] = useState<string>('');
     const [selectedPromoterId, setSelectedPromoterId] = useState<string>('');
     const [numberOfPeople, setNumberOfPeople] = useState(1);
-    const [isDraggable, setIsDraggable] = useState(true);
+    
+    // Simplificamos a lógica de 'isDraggable', agora sempre será arrastável.
+    // O controle de scroll vs. drag será gerenciado pelo próprio gesto do usuário.
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // Efeito para buscar dados
+    // Efeito para buscar dados (sem alterações)
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -68,20 +68,12 @@ const NewListPage = () => {
 
     const handleSelectEvent = (eventId: string) => {
         setSelectedEventId(eventId);
+        // Garante que o painel feche ao selecionar um novo evento
+        setIsPanelOpen(false); 
     };
-
-    const handleContentScroll = () => {
-        if (contentRef.current) {
-            const { scrollTop } = contentRef.current;
-            setIsDraggable(scrollTop === 0);
-        }
-    };
-
-    useEffect(() => {
-        if (!isPanelOpen) {
-            setIsDraggable(true);
-        }
-    }, [isPanelOpen]);
+    
+    // Lógica de 'handleContentScroll' e 'useEffect' associado foi removida
+    // pois não precisamos mais desabilitar o 'drag'.
 
     const handleSubmitVipList = () => {
         if (!selectedEvent) return;
@@ -97,6 +89,7 @@ const NewListPage = () => {
 
     return (
         <div className="bg-gray-900 h-screen w-full overflow-hidden">
+            {/* Background com Animação (sem alterações) */}
             <AnimatePresence>
                 {selectedEvent && (
                     <motion.div key={selectedEvent.id} className="absolute top-0 left-0 w-full h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: "easeInOut" }}>
@@ -106,10 +99,12 @@ const NewListPage = () => {
                 )}
             </AnimatePresence>
 
+            {/* Header (sem alterações) */}
             <header className="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-30">
                 <button onClick={() => router.back()} className="bg-white/10 p-3 rounded-full text-white backdrop-blur-sm"><FaArrowLeft /></button>
             </header>
             
+            {/* Seletor de Eventos (sem alterações) */}
             <div className="absolute top-20 left-0 w-full z-20">
                 <div className="px-4 flex items-center space-x-3 overflow-x-auto pb-4 scrollbar-hide">
                     {events.map((event) => (
@@ -118,10 +113,7 @@ const NewListPage = () => {
                             onClick={() => handleSelectEvent(String(event.id))}
                             className={clsx(
                                 "whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 backdrop-blur-sm",
-                                {
-                                    "bg-white text-gray-900 shadow-lg": String(event.id) === selectedEventId,
-                                    "bg-white/10 text-white": String(event.id) !== selectedEventId,
-                                }
+                                { "bg-white text-gray-900 shadow-lg": String(event.id) === selectedEventId, "bg-white/10 text-white": String(event.id) !== selectedEventId, }
                             )}
                         >
                             {event.nome_do_evento}
@@ -132,13 +124,15 @@ const NewListPage = () => {
 
             {selectedEvent ? (
                 <motion.div
-                    className="absolute top-10 bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-2xl z-20"
+                    className="absolute top-10 bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-2xl z-20 flex flex-col"
                     initial={{ y: "88%" }}
                     animate={{ y: isPanelOpen ? "20%" : "88%" }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    drag={isDraggable ? "y" : false}
+                    drag="y" // A propriedade 'drag' agora é fixa
                     dragConstraints={{ top: 0, bottom: 0 }}
+                    dragElastic={0.2} // Adiciona uma pequena "elasticidade"
                     onDragEnd={(event, info) => {
+                        // A lógica de abrir/fechar com o arrastar continua a mesma
                         if (info.offset.y > 100) {
                             setIsPanelOpen(false);
                         } else if (info.offset.y < -100) {
@@ -146,21 +140,44 @@ const NewListPage = () => {
                         }
                     }}
                 >
-                    <div className="w-full py-4 flex justify-center cursor-grab touch-none"><div className="w-16 h-1.5 bg-gray-300 rounded-full"></div></div>
-                    
-                    <div className="px-6 pb-4">
-                        <h1 className="text-3xl font-bold text-gray-900">{selectedEvent.nome_do_evento}</h1>
-                        <div className="flex items-center gap-4 mt-2 text-gray-600"><FaMapMarkerAlt className="text-blue-500" /><span>{selectedEvent.local_do_evento}</span></div>
+                    {/* Handle para arrastar */}
+                    <div className="w-full py-4 flex-shrink-0 flex justify-center cursor-grab touch-none" onPointerDown={() => setIsPanelOpen(!isPanelOpen)}>
+                        <div className="w-16 h-1.5 bg-gray-300 rounded-full"></div>
                     </div>
                     
+                    {/* Cabeçalho do Painel */}
+                    <div className="px-6 pb-4 flex-shrink-0">
+                        <div className="flex justify-between items-start">
+                             <div>
+                                <h1 className="text-3xl font-bold text-gray-900">{selectedEvent.nome_do_evento}</h1>
+                                <div className="flex items-center gap-4 mt-2 text-gray-600"><FaMapMarkerAlt className="text-blue-500" /><span>{selectedEvent.local_do_evento}</span></div>
+                            </div>
+                            {/* BOTÃO DE FECHAR ADICIONADO AQUI */}
+                            <AnimatePresence>
+                            {isPanelOpen && (
+                                <motion.button 
+                                    onClick={() => setIsPanelOpen(false)} 
+                                    className="p-3 bg-gray-100 rounded-full text-gray-600"
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.5 }}
+                                >
+                                    <FaChevronDown />
+                                </motion.button>
+                            )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                    
+                    {/* Conteúdo com Scroll */}
                     <div
                         ref={contentRef}
-                        onScroll={handleContentScroll}
-                        className="px-6 pb-32 h-[80vh] overflow-y-auto"
+                        className="px-6 pb-32 overflow-y-auto" // A altura foi removida para permitir que o flexbox gerencie o espaço
                     >
                         <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-800">Sobre o Evento</h3>
                         <p className="text-gray-600 mb-6 text-sm">{selectedEvent.descricao || "Nenhuma descrição."}</p>
                         
+                        {/* Grid de Informações (sem alterações) */}
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <div className="bg-gray-100 p-4 rounded-xl flex items-center gap-3"><FaClock className="text-blue-500 text-xl" /><div><h4 className="text-xs text-gray-500">Horário</h4><p className="font-semibold text-sm">{selectedEvent.hora_do_evento}</p></div></div>
                             <div className="bg-gray-100 p-4 rounded-xl flex items-center gap-3"><FaTicketAlt className="text-blue-500 text-xl" /><div><h4 className="text-xs text-gray-500">Entrada</h4><p className="font-semibold text-sm">R$ {selectedEvent.valor_da_entrada}</p></div></div>
@@ -168,10 +185,12 @@ const NewListPage = () => {
                             <div className="bg-gray-100 p-4 rounded-xl flex items-center gap-3"><FaTag className="text-blue-500 text-xl" /><div><h4 className="text-xs text-gray-500">Categoria</h4><p className="font-semibold text-sm">{selectedEvent.categoria}</p></div></div>
                         </div>
 
+                        {/* Imagem do Combo (sem alterações) */}
                         {selectedEvent.imagem_do_combo && (
                             <div className="mb-6"><h3 className="text-lg font-semibold mb-2 text-gray-800">Combo Especial</h3><Image src={`${API_URL}/uploads/events/${selectedEvent.imagem_do_combo}`} alt="Imagem do Combo" width={600} height={300} className="w-full h-auto object-cover rounded-xl shadow-md" unoptimized /></div>
                         )}
                         
+                        {/* Formulário (sem alterações) */}
                         <div className="mt-8 pt-6 border-t border-gray-200">
                             <h3 className="text-xl font-bold mb-4 text-gray-800">Entrar na Lista VIP</h3>
                             <div className="flex flex-col gap-4">
@@ -187,6 +206,7 @@ const NewListPage = () => {
                 <div className="w-full h-full flex items-center justify-center text-white text-center p-4"><div><h2 className="text-2xl font-bold mb-2">Nenhum evento para exibir</h2><p className="text-sm text-gray-300">A busca na API pode ter falhado.</p></div></div>
             )}
 
+            {/* Botão Inferior (sem alterações) */}
             <AnimatePresence>
                 {selectedEvent && !isPanelOpen && (
                     <motion.div className="absolute bottom-0 left-0 w-full p-4 z-30" initial={{ y: "100%" }} animate={{ y: "0%" }} exit={{ y: "100%" }}>

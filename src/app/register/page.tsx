@@ -1,12 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import logoWhite from "../../app/assets/logo_blue.png";
+
+import LogoApp from "../../app/assets/logo-agilizai-h.png";
 import { useState } from "react";
 import Link from "next/link";
 import ModalTermos from "../components/ModalTermos/ModalTermos";
 import ModalPolitica from "../components/ModalPolitica/ModalPolitica";
 import { useRouter } from "next/navigation";
+
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
 
 
 const API_URL =
@@ -123,7 +127,7 @@ router.push("/"); // ajuste o caminho se sua home for diferente
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-6">
         <div className="flex justify-center">
           <Link href="/">
-            <Image src={logoWhite} alt="Logo" className="h-16 w-auto" />
+            <Image src={LogoApp} alt="Logo" className="h-16 w-auto" />
           </Link>
         </div>
 
@@ -229,6 +233,22 @@ router.push("/"); // ajuste o caminho se sua home for diferente
           </label>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
+
+
+                  <div className="space-y-2">
+                    <button
+                      className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-3 hover:bg-gray-100"
+                      onClick={() => window.location.href = `${API_URL}/auth/google`}
+                    >
+                      <FcGoogle size={22} /> Cadastrar com Google
+                    </button>
+                    <button
+                      className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg p-3 hover:bg-gray-100"
+                      onClick={() => alert("Login com Facebook ainda não implementado")}
+                    >
+                      <FaFacebook size={22} color="#1877F2" /> Cadastrar com Facebook
+                    </button>
+                  </div>
 
           <button
             onClick={handleSubmit}

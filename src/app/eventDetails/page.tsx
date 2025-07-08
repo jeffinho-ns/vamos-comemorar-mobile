@@ -7,7 +7,7 @@ import Modal from "react-modal";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaArrowLeft, FaHeart, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
 import LocationMap from "../components/LocationMap/LocationMap";
-import defaultLogo from "../assets/logo_blue.png";
+
 
 // Interface do Evento (sem alterações)
 interface Event {

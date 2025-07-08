@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Footer from "../components/footer/footer";
 import HeaderLike from "../components/headerlike/headerlike";
- import defaultLogo from "../assets/logo_blue.png";
+ import defaultLogo from "../../app/assets/logo-agilizai-h.png";
+ 
 import Modal from "react-modal";
 import { useRouter } from 'next/navigation';
 
